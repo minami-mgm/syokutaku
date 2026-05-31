@@ -344,19 +344,28 @@ function checkAllShop(){
 
 function moveToInventory(){
   if(!confirm("チェックしたものを在庫に追加しますか？")) return;
-  const items=[...shopList.children];
-  items.forEach((d,i)=>{
-    if(d.querySelector("input").checked){
-      const name=shopData[i];
-      const cat=categoryHistory[name]||"冷蔵庫";
-      inventoryData.push({name,cat,level:3});
-      categoryHistory[name]=cat;
-      shopData.splice(i,1);
+
+  const newShopData = [];
+
+  shopData.forEach((name, i) => {
+    const row = shopList.children[i];
+    const checked = row.querySelector("input").checked;
+
+    if(checked){
+      const cat = guessCategory(name);
+      inventoryData.push({ name, cat, level: 3 });
+      remember(name, cat);
+    } else {
+      newShopData.push(name);
     }
   });
-  save("inventory",inventoryData);
-  save("shop",shopData);
-  save("catHistory",categoryHistory);
+
+  shopData.length = 0;
+  shopData.push(...newShopData);
+
+  save("inventory", inventoryData);
+  save("shop", shopData);
+
   renderInventory();
   renderShop();
 }
