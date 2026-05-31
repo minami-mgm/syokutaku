@@ -154,7 +154,12 @@ function openTab(i){
 /* 在庫 */
 const inventoryData = load("inventory",[]);
 const categoryHistory = load("catHistory", {});
-const cats={冷蔵庫:"rei",冷凍庫:"to",その他:"other"};
+const cats={
+  作り置き:"other",
+  冷蔵庫:"rei",
+  冷凍庫:"to",
+  その他:"other"
+};
 const inv=document.getElementById("inventory");
 const grids={};
 
@@ -343,33 +348,91 @@ function checkAllShop(){
 }
 
 function moveToInventory(){
-  if(!confirm("チェックしたものを在庫に追加しますか？")) return;
+  const checkedItems = [];
 
-  const newShopData = [];
-
-  shopData.forEach((name, i) => {
-    const row = shopList.children[i];
-    const checked = row.querySelector("input").checked;
-
-    if(checked){
-      const cat = guessCategory(name);
-      inventoryData.push({ name, cat, level: 3 });
-      remember(name, cat);
-    } else {
-      newShopData.push(name);
+  shopData.forEach((name,i)=>{
+    if(shopList.children[i].querySelector("input").checked){
+      checkedItems.push(name);
     }
   });
 
-  shopData.length = 0;
-  shopData.push(...newShopData);
+  if(checkedItems.length===0){
+    alert("チェックされたものがありません");
+    return;
+  }
 
-  save("inventory", inventoryData);
-  save("shop", shopData);
+  confirmMoveToInventory(checkedItems);
 
-  renderInventory();
+  // ★ 在庫に入れる操作をしたら必ず買い物から消す
+  shopData = shopData.filter(x=>!checkedItems.includes(x));
+  save("shop",shopData);
   renderShop();
 }
 renderShop();
+
+function confirmMoveToInventory(selectedItems){
+  const overlay = document.createElement("div");
+  overlay.style = `
+    position:fixed; inset:0; background:rgba(0,0,0,.4);
+    display:flex; align-items:center; justify-content:center; z-index:1000;
+  `;
+
+  const box = document.createElement("div");
+  box.style = `
+    background:#fff; padding:12px; border-radius:10px;
+    width:90%; max-width:400px;
+  `;
+  box.innerHTML = `<h3>在庫に追加する内容</h3>`;
+
+  const selects = [];
+
+  selectedItems.forEach(item=>{
+    const row = document.createElement("div");
+    row.style="display:flex; justify-content:space-between; margin-bottom:6px;";
+
+    const sel = document.createElement("select");
+    ["作り置き","冷蔵庫","冷凍庫","その他"].forEach(c=>{
+      const o=document.createElement("option");
+      o.value=c; o.textContent=c;
+      sel.appendChild(o);
+    });
+
+    sel.value = categoryHistory[item] || guessCategory(item);
+
+    selects.push({name:item, select:sel});
+
+    row.append(
+      Object.assign(document.createElement("span"),{textContent:item}),
+      sel
+    );
+    box.appendChild(row);
+  });
+
+  const ok = document.createElement("button");
+  ok.textContent="追加する";
+  ok.onclick=()=>{
+    selects.forEach(s=>{
+      inventoryData.push({name:s.name, cat:s.select.value, level:3});
+      categoryHistory[s.name]=s.select.value;
+    });
+
+    save("inventory",inventoryData);
+    save("catHistory",categoryHistory);
+
+    overlay.remove();
+    renderInventory();
+  };
+
+  const cancel = document.createElement("button");
+  cancel.textContent="キャンセル";
+  cancel.style="margin-left:8px";
+  cancel.onclick=()=>overlay.remove();
+
+  box.append(ok,cancel);
+  overlay.appendChild(box);
+  document.body.appendChild(overlay);
+}
+  
 </script>
 </body>
 </html>
