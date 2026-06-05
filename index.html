@@ -4,9 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>キッチンノート</title>
+  <link rel="apple-touch-icon" href="icon2.png">
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background: #FFF9F0; }
+    body { background: #FDF8F5; }
   </style>
 </head>
 <body>
@@ -19,12 +20,12 @@
 
     const CATEGORIES = ["作り置き", "野菜", "その他"];
     const CATEGORY_STYLES = {
-      "作り置き": { bg: "#FF6B6B", light: "#FFE5E5", emoji: "🍱" },
-      "野菜":     { bg: "#51CF66", light: "#E6F9EA", emoji: "🥦" },
-      "その他":   { bg: "#339AF0", light: "#E3F0FF", emoji: "📦" },
+      "作り置き": { bg: "#E8847C", light: "#FDECEA", emoji: "🍱" },
+      "野菜":     { bg: "#6DBF90", light: "#E8F7EF", emoji: "🥦" },
+      "その他":   { bg: "#7AAFD4", light: "#E8F2FA", emoji: "📦" },
     };
     const AMOUNT_LEVELS = ["残りわずか", "半分", "たっぷり"];
-    const AMOUNT_COLORS = ["#FF6B6B", "#FFA94D", "#51CF66"];
+    const AMOUNT_COLORS = ["#E8847C", "#E8B46A", "#6DBF90"];
     const AMOUNT_EMOJIS = ["🔴", "🟡", "🟢"];
 
     const DEFAULT_ITEMS = [
@@ -32,7 +33,7 @@
       { id: 2, name: "ほうれん草", category: "野菜", amount: 1 },
       { id: 3, name: "牛乳", category: "その他", amount: 2 },
     ];
-    const DEFAULT_MEALS = { "-1": "カレーライス", "0": "", "1": "", "2": "" };
+    
     const DEFAULT_SHOP = ["たまねぎ", "豆腐"];
 
     function load(key, fallback) {
@@ -45,6 +46,12 @@
       try { localStorage.setItem(key, JSON.stringify(value)); } catch {}
     }
 
+    function getDateKey(offset) {
+      const d = new Date();
+      d.setDate(d.getDate() + offset);
+      return d.toISOString().slice(0, 10);
+    }
+
     function getDateLabel(offset) {
       const d = new Date();
       d.setDate(d.getDate() + offset);
@@ -53,14 +60,14 @@
       const mm = d.getMonth() + 1;
       const dd = d.getDate();
       const wd = weekdays[d.getDay()];
-      return { label: labels[offset], date: `${mm}/${dd}(${wd})` };
+      return { label: labels[offset], date: `${mm}/${dd}(${wd})`, key: getDateKey(offset) };
     }
 
     function App() {
       const [tab, setTab] = useState("在庫");
       const [items, setItems] = useState(() => load("kn_items", DEFAULT_ITEMS));
       const [newItem, setNewItem] = useState({ name: "", category: "作り置き", amount: 2 });
-      const [meals, setMeals] = useState(() => load("kn_meals", DEFAULT_MEALS));
+      const [meals, setMeals] = useState(() => load("kn_meals", {}));
       const [editingDay, setEditingDay] = useState(null);
       const [mealInput, setMealInput] = useState("");
       const [shopItems, setShopItems] = useState(() => load("kn_shop", DEFAULT_SHOP));
@@ -83,7 +90,7 @@
         setItems(prev => prev.map(i => i.id === id ? { ...i, amount: (i.amount + 1) % 3 } : i));
       };
       const saveMeal = (offset) => {
-        setMeals(prev => ({ ...prev, [offset]: mealInput }));
+        setMeals(prev => ({ ...prev, [getDateKey(editingDay)]: mealInput }));
         setEditingDay(null);
         setMealInput("");
       };
@@ -102,14 +109,14 @@
 
       const TABS = ["在庫", "献立", "買い物リスト"];
       const TAB_EMOJIS = { "在庫": "🧊", "献立": "🍽️", "買い物リスト": "🛒" };
-      const TAB_COLORS = { "在庫": "#FF6B6B", "献立": "#CC5DE8", "買い物リスト": "#FFA94D" };
+      const TAB_COLORS = { "在庫": "#E8847C", "献立": "#A89CD8", "買い物リスト": "#E8B46A" };
       const inp = { fontFamily: "inherit", fontSize: 16, outline: "none" };
 
       return (
-        <div style={{ minHeight: "100vh", background: "linear-gradient(135deg,#FFF9F0 0%,#FFF0F6 50%,#F0F4FF 100%)", fontFamily: "'Hiragino Maru Gothic ProN','BIZ UDPGothic',sans-serif", paddingBottom: 80 }}>
+        <div style={{ minHeight: "100vh", background: "linear-gradient(135deg,#FDF8F5 0%,#F8F5FC 50%,#F3F7FD 100%)", fontFamily: "'Hiragino Maru Gothic ProN','BIZ UDPGothic',sans-serif", paddingBottom: 80 }}>
 
           {/* Header */}
-          <div style={{ background: "linear-gradient(90deg,#FF6B6B,#CC5DE8,#339AF0)", padding: "10px 16px", display: "flex", alignItems: "center", gap: 8 }}>
+          <div style={{ background: "linear-gradient(90deg,#F0A09A,#B8A8E0,#90BEE0)", padding: "10px 16px", display: "flex", alignItems: "center", gap: 8 }}>
             <span style={{ fontSize: 16 }}>🏠</span>
             <span style={{ color: "#fff", fontSize: 15, fontWeight: 900, letterSpacing: 0.5, textShadow: "0 1px 4px rgba(0,0,0,.15)" }}>キッチンノート</span>
           </div>
@@ -128,12 +135,12 @@
             {/* 在庫タブ */}
             {tab === "在庫" && (
               <div>
-                <div style={{ background: "#fff", borderRadius: 20, padding: 16, marginBottom: 16, boxShadow: "0 4px 20px rgba(255,107,107,.12)", border: "2px solid #FFE5E5" }}>
-                  <p style={{ margin: "0 0 10px", fontWeight: 800, color: "#FF6B6B", fontSize: 14 }}>➕ 食材を追加</p>
+                <div style={{ background: "#fff", borderRadius: 20, padding: 16, marginBottom: 16, boxShadow: "0 4px 20px rgba(232,160,154,.15)", border: "2px solid #FAD8D5" }}>
+                  <p style={{ margin: "0 0 10px", fontWeight: 800, color: "#E8847C", fontSize: 14 }}>➕ 食材を追加</p>
                   <input placeholder="食材名を入力..." value={newItem.name}
                     onChange={e => setNewItem({ ...newItem, name: e.target.value })}
                     onKeyDown={e => e.key === "Enter" && addItem()}
-                    style={{ ...inp, width: "100%", padding: "10px 14px", borderRadius: 12, border: "2px solid #FFE0E0", boxSizing: "border-box", marginBottom: 10 }} />
+                    style={{ ...inp, width: "100%", padding: "10px 14px", borderRadius: 12, border: "2px solid #FAD8D5", boxSizing: "border-box", marginBottom: 10 }} />
                   <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
                     {CATEGORIES.map(c => (
                       <button key={c} onClick={() => setNewItem({ ...newItem, category: c })} style={{ flex: 1, padding: "8px 4px", border: `2px solid ${newItem.category === c ? CATEGORY_STYLES[c].bg : "#EEE"}`, borderRadius: 10, background: newItem.category === c ? CATEGORY_STYLES[c].light : "#fff", color: newItem.category === c ? CATEGORY_STYLES[c].bg : "#AAA", fontWeight: 700, fontSize: 11, cursor: "pointer", fontFamily: "inherit" }}>
@@ -148,7 +155,7 @@
                       </button>
                     ))}
                   </div>
-                  <button onClick={addItem} style={{ width: "100%", padding: 12, borderRadius: 14, background: "linear-gradient(90deg,#FF6B6B,#FF8E8E)", border: "none", color: "#fff", fontWeight: 800, fontSize: 15, cursor: "pointer", letterSpacing: 1, boxShadow: "0 4px 14px #FF6B6B55", fontFamily: "inherit" }}>追加する</button>
+                  <button onClick={addItem} style={{ width: "100%", padding: 12, borderRadius: 14, background: "linear-gradient(90deg,#E8847C,#D97070)", border: "none", color: "#fff", fontWeight: 800, fontSize: 15, cursor: "pointer", letterSpacing: 1, boxShadow: "0 4px 14px rgba(232,132,124,.35)", fontFamily: "inherit" }}>追加する</button>
                 </div>
 
                 {CATEGORIES.map(cat => {
@@ -169,7 +176,7 @@
                             <button onClick={() => cycleAmount(item.id)} style={{ padding: "5px 12px", borderRadius: 20, border: "none", background: AMOUNT_COLORS[item.amount] + "20", color: AMOUNT_COLORS[item.amount], fontWeight: 700, fontSize: 12, cursor: "pointer", marginRight: 8, fontFamily: "inherit" }}>
                               {AMOUNT_EMOJIS[item.amount]} {AMOUNT_LEVELS[item.amount]}
                             </button>
-                            <button onClick={() => removeItem(item.id)} style={{ background: "#FFF0F0", border: "none", color: "#FF6B6B", borderRadius: 8, width: 28, height: 28, cursor: "pointer", fontSize: 14, fontWeight: 700, fontFamily: "inherit" }}>×</button>
+                            <button onClick={() => removeItem(item.id)} style={{ background: "#FDECEA", border: "none", color: "#E8847C", borderRadius: 8, width: 28, height: 28, cursor: "pointer", fontSize: 14, fontWeight: 700, fontFamily: "inherit" }}>×</button>
                           </div>
                         ))
                       }
@@ -183,19 +190,19 @@
             {tab === "献立" && (
               <div>
                 {[-1, 0, 1, 2].map(offset => {
-                  const { label, date } = getDateLabel(offset);
+                  const { label, date, key: dateKey } = getDateLabel(offset);
                   const isToday = offset === 0;
                   const isEditing = editingDay === offset;
                   return (
-                    <div key={offset} style={{ background: "#fff", borderRadius: 20, marginBottom: 12, boxShadow: isToday ? "0 6px 24px rgba(204,93,232,.2)" : "0 2px 12px rgba(0,0,0,.06)", border: isToday ? "2px solid #CC5DE8" : "2px solid #F3F3F3", overflow: "hidden" }}>
-                      <div style={{ display: "flex", alignItems: "center", padding: "14px 16px", background: isToday ? "linear-gradient(90deg,#CC5DE8,#9C36B5)" : "#FAFAFA" }}>
+                    <div key={offset} style={{ background: "#fff", borderRadius: 20, marginBottom: 12, boxShadow: isToday ? "0 6px 24px rgba(168,156,216,.25)" : "0 2px 12px rgba(0,0,0,.06)", border: isToday ? "2px solid #A89CD8" : "2px solid #EEEBf8", overflow: "hidden" }}>
+                      <div style={{ display: "flex", alignItems: "center", padding: "14px 16px", background: isToday ? "linear-gradient(90deg,#A89CD8,#9080C4)" : "#FAFAFA" }}>
                         <div>
                           <span style={{ fontWeight: 900, fontSize: 16, color: isToday ? "#fff" : (offset < 0 ? "#BBB" : "#333") }}>{label}</span>
                           <span style={{ fontSize: 12, marginLeft: 8, color: isToday ? "rgba(255,255,255,.8)" : "#BBB" }}>{date}</span>
                         </div>
                         {offset >= 0 && (
-                          <button onClick={() => { setEditingDay(isEditing ? null : offset); setMealInput(meals[offset] || ""); }}
-                            style={{ marginLeft: "auto", padding: "6px 14px", borderRadius: 20, border: "none", background: isToday ? "rgba(255,255,255,.25)" : "#F0E6FF", color: isToday ? "#fff" : "#CC5DE8", fontWeight: 700, fontSize: 12, cursor: "pointer", fontFamily: "inherit" }}>
+                          <button onClick={() => { setEditingDay(isEditing ? null : offset); setMealInput(meals[dateKey] || ""); }}
+                            style={{ marginLeft: "auto", padding: "6px 14px", borderRadius: 20, border: "none", background: isToday ? "rgba(255,255,255,.25)" : "#EEEBf8", color: isToday ? "#fff" : "#A89CD8", fontWeight: 700, fontSize: 12, cursor: "pointer", fontFamily: "inherit" }}>
                             {isEditing ? "✕ 閉じる" : "✏️ 編集"}
                           </button>
                         )}
@@ -204,12 +211,12 @@
                         {isEditing ? (
                           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                             <textarea autoFocus placeholder={"献立を入力...\n（複数行OK）"} value={mealInput} onChange={e => setMealInput(e.target.value)} rows={3}
-                              style={{ ...inp, width: "100%", padding: "10px 14px", borderRadius: 12, border: "2px solid #E9C6FF", boxSizing: "border-box", lineHeight: 1.6, resize: "none" }} />
-                            <button onClick={() => saveMeal(offset)} style={{ padding: "10px 16px", borderRadius: 12, background: "#CC5DE8", border: "none", color: "#fff", fontWeight: 700, fontSize: 13, cursor: "pointer", fontFamily: "inherit" }}>保存</button>
+                              style={{ ...inp, width: "100%", padding: "10px 14px", borderRadius: 12, border: "2px solid #D8D2F0", boxSizing: "border-box", lineHeight: 1.6, resize: "none" }} />
+                            <button onClick={() => saveMeal(offset)} style={{ padding: "10px 16px", borderRadius: 12, background: "#A89CD8", border: "none", color: "#fff", fontWeight: 700, fontSize: 13, cursor: "pointer", fontFamily: "inherit" }}>保存</button>
                           </div>
                         ) : (
-                          <p style={{ margin: 0, fontSize: 15, color: meals[offset] ? "#333" : "#DDD", fontWeight: meals[offset] ? 700 : 400, minHeight: 24, whiteSpace: "pre-wrap" }}>
-                            {meals[offset] || (offset < 0 ? "記録なし" : "未定")}
+                          <p style={{ margin: 0, fontSize: 15, color: meals[dateKey] ? "#333" : "#DDD", fontWeight: meals[dateKey] ? 700 : 400, minHeight: 24, whiteSpace: "pre-wrap" }}>
+                            {meals[dateKey] || (offset < 0 ? "記録なし" : "未定")}
                           </p>
                         )}
                       </div>
@@ -222,18 +229,18 @@
             {/* 買い物リストタブ */}
             {tab === "買い物リスト" && (
               <div>
-                <div style={{ background: "#fff", borderRadius: 20, padding: 16, marginBottom: 16, boxShadow: "0 4px 20px rgba(255,169,77,.15)", border: "2px solid #FFE8C0" }}>
-                  <p style={{ margin: "0 0 10px", fontWeight: 800, color: "#FFA94D", fontSize: 14 }}>➕ 買うものを追加</p>
+                <div style={{ background: "#fff", borderRadius: 20, padding: 16, marginBottom: 16, boxShadow: "0 4px 20px rgba(232,180,106,.15)", border: "2px solid #FAE4C0" }}>
+                  <p style={{ margin: "0 0 10px", fontWeight: 800, color: "#E8B46A", fontSize: 14 }}>➕ 買うものを追加</p>
                   <div style={{ display: "flex", gap: 8 }}>
                     <input placeholder="例：たまご、牛乳..." value={shopInput}
                       onChange={e => setShopInput(e.target.value)}
                       onKeyDown={e => e.key === "Enter" && addShopItem()}
-                      style={{ ...inp, flex: 1, padding: "11px 14px", borderRadius: 14, border: "2px solid #FFE8C0" }} />
-                    <button onClick={addShopItem} style={{ padding: "11px 18px", borderRadius: 14, background: "linear-gradient(90deg,#FFA94D,#FF8C00)", border: "none", color: "#fff", fontWeight: 800, fontSize: 16, cursor: "pointer", boxShadow: "0 4px 12px #FFA94D55", fontFamily: "inherit" }}>+</button>
+                      style={{ ...inp, flex: 1, padding: "11px 14px", borderRadius: 14, border: "2px solid #FAE4C0" }} />
+                    <button onClick={addShopItem} style={{ padding: "11px 18px", borderRadius: 14, background: "linear-gradient(90deg,#E8B46A,#D49A50)", border: "none", color: "#fff", fontWeight: 800, fontSize: 16, cursor: "pointer", boxShadow: "0 4px 12px rgba(232,180,106,.35)", fontFamily: "inherit" }}>+</button>
                   </div>
                 </div>
-                <div style={{ background: "#fff", borderRadius: 20, overflow: "hidden", boxShadow: "0 4px 20px rgba(255,169,77,.12)", border: "2px solid #FFE8C0" }}>
-                  <div style={{ background: "linear-gradient(90deg,#FFA94D,#FF8C00)", padding: "12px 16px", display: "flex", alignItems: "center" }}>
+                <div style={{ background: "#fff", borderRadius: 20, overflow: "hidden", boxShadow: "0 4px 20px rgba(232,180,106,.15)", border: "2px solid #FAE4C0" }}>
+                  <div style={{ background: "linear-gradient(90deg,#E8B46A,#D49A50)", padding: "12px 16px", display: "flex", alignItems: "center" }}>
                     <span style={{ color: "#fff", fontWeight: 800, fontSize: 15 }}>🛒 買い物リスト</span>
                     <span style={{ marginLeft: "auto", background: "rgba(255,255,255,.3)", color: "#fff", fontSize: 12, fontWeight: 700, padding: "2px 10px", borderRadius: 20 }}>
                       {shopItems.filter(i => !checkedShop.includes(i)).length}/{shopItems.length}
@@ -244,18 +251,18 @@
                     : shopItems.map((item, idx) => {
                       const checked = checkedShop.includes(item);
                       return (
-                        <div key={idx} style={{ display: "flex", alignItems: "center", padding: "14px 16px", borderBottom: "1px solid #FFF5E6", background: checked ? "#FFFAF0" : "#fff" }}>
-                          <button onClick={() => toggleShop(item)} style={{ width: 24, height: 24, borderRadius: 8, border: checked ? "none" : "2px solid #FFA94D", background: checked ? "#FFA94D" : "transparent", cursor: "pointer", marginRight: 12, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, color: "#fff", flexShrink: 0, fontFamily: "inherit" }}>
+                        <div key={idx} style={{ display: "flex", alignItems: "center", padding: "14px 16px", borderBottom: "1px solid #FDF4E8", background: checked ? "#FDF8F0" : "#fff" }}>
+                          <button onClick={() => toggleShop(item)} style={{ width: 24, height: 24, borderRadius: 8, border: checked ? "none" : "2px solid #E8B46A", background: checked ? "#E8B46A" : "transparent", cursor: "pointer", marginRight: 12, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, color: "#fff", flexShrink: 0, fontFamily: "inherit" }}>
                             {checked ? "✓" : ""}
                           </button>
                           <span style={{ flex: 1, fontSize: 15, fontWeight: 600, color: checked ? "#CCC" : "#333", textDecoration: checked ? "line-through" : "none" }}>{item}</span>
-                          <button onClick={() => removeShopItem(item)} style={{ background: "#FFF0F0", border: "none", color: "#FF6B6B", borderRadius: 8, width: 28, height: 28, cursor: "pointer", fontSize: 14, fontWeight: 700, fontFamily: "inherit" }}>×</button>
+                          <button onClick={() => removeShopItem(item)} style={{ background: "#FDECEA", border: "none", color: "#E8847C", borderRadius: 8, width: 28, height: 28, cursor: "pointer", fontSize: 14, fontWeight: 700, fontFamily: "inherit" }}>×</button>
                         </div>
                       );
                     })
                   }
                   {checkedShop.length > 0 && (
-                    <button onClick={() => setShowCategoryModal(true)} style={{ width: "100%", padding: 14, background: "linear-gradient(90deg,#51CF66,#2FAB50)", border: "none", color: "#fff", fontWeight: 700, fontSize: 13, cursor: "pointer", fontFamily: "inherit" }}>
+                    <button onClick={() => setShowCategoryModal(true)} style={{ width: "100%", padding: 14, background: "linear-gradient(90deg,#6DBF90,#58A878)", border: "none", color: "#fff", fontWeight: 700, fontSize: 13, cursor: "pointer", fontFamily: "inherit" }}>
                       🧊 購入済み({checkedShop.length}件)を在庫に追加
                     </button>
                   )}
@@ -290,7 +297,7 @@
                   setShopItems(prev => prev.filter(i => !checkedShop.includes(i)));
                   setCheckedShop([]);
                   setShowCategoryModal(false);
-                }} style={{ width: "100%", padding: 15, borderRadius: 16, background: `linear-gradient(90deg,${CATEGORY_STYLES[selectedCategory].bg},${CATEGORY_STYLES[selectedCategory].bg}CC)`, border: "none", color: "#fff", fontWeight: 800, fontSize: 16, cursor: "pointer", fontFamily: "inherit", boxShadow: `0 4px 16px ${CATEGORY_STYLES[selectedCategory].bg}55` }}>
+                }} style={{ width: "100%", padding: 15, borderRadius: 16, background: `linear-gradient(90deg,${CATEGORY_STYLES[selectedCategory].bg},${CATEGORY_STYLES[selectedCategory].bg}CC)`, border: "none", color: "#fff", fontWeight: 800, fontSize: 16, cursor: "pointer", fontFamily: "inherit", boxShadow: `0 4px 16px ${CATEGORY_STYLES[selectedCategory].bg}44` }}>
                   {CATEGORY_STYLES[selectedCategory].emoji} 在庫に追加する
                 </button>
               </div>
